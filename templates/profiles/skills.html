@@ -1,6 +1,4 @@
-{% extends "base.html" %}
-{% block title %}Compétences — ELYON{% endblock %}
-{% block content %}
+{% extends "base.html" %} {% block title %}Compétences — EasyCV{% endblock %} {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-7">
         <div class="card-elyon p-4 mb-4">
@@ -33,28 +31,29 @@
         <a href="{% url 'profiles:dashboard' %}" class="btn btn-link mt-3">&larr; Retour au dashboard</a>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_scripts %}
+{% endblock %} {% block extra_scripts %}
 <script>
-function getCookie(name) {
-    const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
-    return v ? v.pop() : '';
-}
-document.getElementById('ai-suggest-btn').addEventListener('click', async () => {
-    const out = document.getElementById('ai-suggestions');
-    out.innerHTML = 'Chargement…';
-    const res = await fetch("{% url 'ai:skill_suggestions' %}", {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken')},
-        body: JSON.stringify({})
-    });
-    const data = await res.json();
-    if (data.ok) {
-        out.innerHTML = data.result.map(s => `<span class="badge-tech">${s}</span>`).join(' ');
-    } else {
-        out.innerHTML = `<span class="text-danger">${data.error}</span>`;
+    function getCookie(name) {
+        const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+        return v ? v.pop() : '';
     }
-});
+    document.getElementById('ai-suggest-btn').addEventListener('click', async() => {
+        const out = document.getElementById('ai-suggestions');
+        out.innerHTML = 'Chargement…';
+        const res = await fetch("{% url 'ai:skill_suggestions' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({})
+        });
+        const data = await res.json();
+        if (data.ok) {
+            out.innerHTML = data.result.map(s => `<span class="badge-tech">${s}</span>`).join(' ');
+        } else {
+            out.innerHTML = `<span class="text-danger">${data.error}</span>`;
+        }
+    });
 </script>
 {% endblock %}

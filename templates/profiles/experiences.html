@@ -1,18 +1,14 @@
-{% extends "base.html" %}
-{% block title %}Expériences — ELYON{% endblock %}
-{% block content %}
+{% extends "base.html" %} {% block title %}Expériences — EasyCV{% endblock %} {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-7">
         <div class="card-elyon p-4 mb-4">
             <span class="card-label">Parcours</span>
             <h4 class="mb-3">Ajouter une expérience</h4>
             <form method="post" novalidate>
-                {% csrf_token %}
-                {% for field in form %}
-                    <div class="mb-2">
-                        <label class="form-label">{{ field.label }}</label>
-                        {{ field }}
-                    </div>
+                {% csrf_token %} {% for field in form %}
+                <div class="mb-2">
+                    <label class="form-label">{{ field.label }}</label> {{ field }}
+                </div>
                 {% endfor %}
                 <button class="btn btn-elyon-primary" type="submit">Ajouter</button>
             </form>

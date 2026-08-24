@@ -1,6 +1,4 @@
-{% extends "base.html" %}
-{% block title %}Dashboard — ELYON{% endblock %}
-{% block content %}
+{% extends "base.html" %} {% block title %}Dashboard — EasyCV{% endblock %}{% block content %}
 
 <div class="row g-4 mb-2">
     <div class="col-md-8">
@@ -8,11 +6,10 @@
             <span class="card-label">Ton profil</span>
             <div class="d-flex align-items-center gap-3">
                 {% if profile.photo %}
-                    <img src="{{ profile.photo.url }}" class="rounded-circle" width="70" height="70" style="object-fit:cover;">
-                {% else %}
-                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" style="width:70px;height:70px;">
-                        <i class="bi bi-person fs-3 text-muted"></i>
-                    </div>
+                <img src="{{ profile.photo.url }}" class="rounded-circle" width="70" height="70" style="object-fit:cover;"> {% else %}
+                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" style="width:70px;height:70px;">
+                    <i class="bi bi-person fs-3 text-muted"></i>
+                </div>
                 {% endif %}
                 <div>
                     <h4 class="mb-0">{{ profile.full_name|default:user.username }}</h4>
@@ -44,13 +41,13 @@
                 <div class="score-ring-inner">{{ score }}/100</div>
             </div>
             {% if missing_items %}
-                <ul class="text-start small text-muted mt-3 mb-0">
-                    {% for item in missing_items|slice:":3" %}
-                        <li>{{ item }}</li>
-                    {% endfor %}
-                </ul>
+            <ul class="text-start small text-muted mt-3 mb-0">
+                {% for item in missing_items|slice:":3" %}
+                <li>{{ item }}</li>
+                {% endfor %}
+            </ul>
             {% else %}
-                <p class="small text-success mt-3 mb-0">Profil complet, bravo !</p>
+            <p class="small text-success mt-3 mb-0">Profil complet, bravo !</p>
             {% endif %}
         </div>
     </div>
@@ -82,12 +79,20 @@
             <i class="bi bi-mortarboard" style="color:var(--elyon-primary)"></i> Formations
         </a>
     </div>
+    <div class="col-6 col-md-3">
+        <a href="{% url 'cvgen:choose_theme' %}" class="card-elyon p-3 d-block text-decoration-none text-dark h-100">
+            <i class="bi bi-palette" style="color:var(--elyon-primary)"></i> Thème
+        </a>
+    </div>
 </div>
 
 <div class="card-elyon p-4 ai-panel mb-4">
     <span class="card-label">Export</span>
     <h6>Ton CV</h6>
-    <p class="small text-muted">Génère ton CV PDF à partir de tes informations ELYON.</p>
+    <p class="small text-muted">
+        Génère ton CV PDF à partir de tes informations EasyCV. {% if profile.cv_theme %} Thème actif : <strong>{{ profile.cv_theme.name }}</strong>. {% else %}
+        <a href="{% url 'cvgen:choose_theme' %}">Choisir un thème</a> pour personnaliser la mise en page. {% endif %}
+    </p>
     <div class="d-flex gap-2 flex-wrap">
         <form method="post" action="{% url 'cvgen:generate' %}">
             {% csrf_token %}
@@ -96,9 +101,12 @@
             </button>
         </form>
         {% if profile.cv_pdf %}
-            <a href="{% url 'cvgen:download' %}" class="btn btn-outline-dark btn-sm">
-                <i class="bi bi-file-earmark-arrow-down"></i> Télécharger mon CV
-            </a>
+        <a href="{% url 'cvgen:preview' %}" target="_blank" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-eye"></i> Aperçu
+        </a>
+        <a href="{% url 'cvgen:download' %}" class="btn btn-outline-dark btn-sm">
+            <i class="bi bi-file-earmark-arrow-down"></i> Télécharger mon CV
+        </a>
         {% endif %}
     </div>
 </div>
@@ -114,30 +122,33 @@
     <div id="ai-response" class="small mt-3"></div>
 </div>
 
-{% endblock %}
-
-{% block extra_scripts %}
+{% endblock %} {% block extra_scripts %}
 <script>
-function getCookie(name) {
-    const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
-    return v ? v.pop() : '';
-}
-document.getElementById('ai-ask-btn').addEventListener('click', async () => {
-    const question = document.getElementById('ai-question').value;
-    const out = document.getElementById('ai-response');
-    if (!question.trim()) return;
-    out.innerHTML = '<span class="text-muted">Réflexion en cours…</span>';
-    try {
-        const res = await fetch("{% url 'ai:assistant' %}", {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken')},
-            body: JSON.stringify({question})
-        });
-        const data = await res.json();
-        out.innerHTML = data.ok ? `<div class="alert alert-light border">${data.result}</div>` : `<div class="text-danger">${data.error}</div>`;
-    } catch (e) {
-        out.innerHTML = '<div class="text-danger">Erreur de connexion à l\'assistant.</div>';
+    function getCookie(name) {
+        const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+        return v ? v.pop() : '';
     }
-});
+    document.getElementById('ai-ask-btn').addEventListener('click', async() => {
+        const question = document.getElementById('ai-question').value;
+        const out = document.getElementById('ai-response');
+        if (!question.trim()) return;
+        out.innerHTML = '<span class="text-muted">Réflexion en cours…</span>';
+        try {
+            const res = await fetch("{% url 'ai:assistant' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    question
+                })
+            });
+            const data = await res.json();
+            out.innerHTML = data.ok ? `<div class="alert alert-light border">${data.result}</div>` : `<div class="text-danger">${data.error}</div>`;
+        } catch (e) {
+            out.innerHTML = '<div class="text-danger">Erreur de connexion à l\'assistant.</div>';
+        }
+    });
 </script>
 {% endblock %}

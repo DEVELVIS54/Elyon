@@ -1,20 +1,16 @@
-{% extends "base.html" %}
-{% block title %}Créer mon compte — ELYON{% endblock %}
-{% block content %}
+{% extends "base.html" %} {% block title %}Créer mon compte — EasyCV{% endblock %} {% block content %}
 <div class="row justify-content-center" style="min-height: 60vh; align-items: center;">
     <div class="col-md-6">
         <div class="card-elyon p-4">
             <span class="card-label">Inscription</span>
-            <h3 class="mb-4">Crée ton compte ELYON</h3>
+            <h3 class="mb-4">Crée ton compte EasyCV</h3>
             <form method="post" novalidate>
-                {% csrf_token %}
-                {% for field in form %}
-                    <div class="mb-3">
-                        <label class="form-label">{{ field.label }}</label>
-                        {{ field }}
-                        {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
-                        {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
-                    </div>
+                {% csrf_token %} {% for field in form %}
+                <div class="mb-3">
+                    <label class="form-label">{{ field.label }}</label> {{ field }} {% if field.help_text %}
+                    <div class="form-text">{{ field.help_text }}</div>{% endif %} {% for error in field.errors %}
+                    <div class="text-danger small">{{ error }}</div>{% endfor %}
+                </div>
                 {% endfor %}
                 <button class="btn btn-elyon-primary w-100" type="submit">Créer mon compte</button>
             </form>

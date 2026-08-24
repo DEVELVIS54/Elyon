@@ -24,8 +24,13 @@ class Profile(models.Model):
     phone = models.CharField(max_length=30, blank=True)
     availability = models.CharField(max_length=100, blank=True, help_text="Ex: Disponible pour missions freelance")
 
-    # Couleur d'accent utilisée dans le CV généré
+     # Couleur d'accent utilisée dans le CV généré (utilisée si aucun thème n'est choisi)
     primary_color = models.CharField(max_length=7, default='#E8231A')
+
+    # Thème de CV choisi dans le catalogue (optionnel)
+    cv_theme = models.ForeignKey(
+        'cvgen.CVTheme', on_delete=models.SET_NULL, blank=True, null=True, related_name='profiles'
+    )
 
     # Plan / SaaS
     plan = models.CharField(max_length=10, choices=PLAN_CHOICES, default='free')

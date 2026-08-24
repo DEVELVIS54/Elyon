@@ -5,7 +5,7 @@ from django.urls import reverse_lazy
 
 from profiles.models import Profile
 
-from .forms import RegisterForm
+from .forms import RegisterForm, StyledAuthenticationForm
 
 
 def register(request):
@@ -27,6 +27,7 @@ def register(request):
 
 class ElyonLoginView(LoginView):
     template_name = 'accounts/login.html'
+    form_class = StyledAuthenticationForm
     redirect_authenticated_user = True
 
 

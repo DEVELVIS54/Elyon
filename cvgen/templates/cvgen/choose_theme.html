@@ -1,0 +1,44 @@
+{% extends "base.html" %} {% block title %}Choisir un thème — EasyCV{% endblock %} {% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <span class="section-eyebrow">Personnalisation</span>
+        <h4 class="mb-0 mt-1">Choisir un thème de CV</h4>
+    </div>
+    <a href="{% url 'profiles:dashboard' %}" class="btn btn-link btn-sm">Retour au dashboard</a>
+</div>
+
+{% if not themes %}
+<div class="card-elyon p-4 text-center">
+    <span class="card-label">Catalogue</span>
+    <p class="text-muted mb-0">Aucun thème disponible pour l'instant. Ton CV utilisera la mise en page par défaut.</p>
+</div>
+{% else %}
+<div class="row g-4">
+    {% for theme in themes %}
+    <div class="col-md-4">
+        <div class="theme-catalog-card{% if theme.id == current_theme_id %} selected{% endif %}">
+            <img src="{{ theme.reference_image.url }}" class="theme-thumb-img" alt="{{ theme.name }}">
+            <div class="p-3">
+                <span class="card-label">{% if theme.is_analyzed %}Prêt{% else %}Non analysé{% endif %}</span>
+                <h6 class="mb-1">{{ theme.name }}</h6>
+                {% if theme.description %}
+                <p class="small text-muted mb-3">{{ theme.description }}</p>
+                {% endif %}
+                <form method="post" action="{% url 'cvgen:select_theme' theme.pk %}">
+                    {% csrf_token %} {% if theme.id == current_theme_id %}
+                    <button class="btn btn-outline-dark btn-sm w-100" disabled>Thème actif</button> {% else %}
+                    <button class="btn btn-elyon-primary btn-sm w-100" type="submit">Choisir ce thème</button> {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if current_theme_id %}
+<form method="post" action="{% url 'cvgen:clear_theme' %}" class="mt-4">
+    {% csrf_token %}
+    <button class="btn btn-link btn-sm" type="submit">Revenir à la mise en page par défaut</button>
+</form>
+{% endif %} {% endif %} {% endblock %}

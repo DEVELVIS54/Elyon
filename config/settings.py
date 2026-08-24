@@ -1,5 +1,5 @@
 """
-ELYON Portfolio - Django settings
+EasyCV Portfolio - Django settings
 """
 
 import os
@@ -32,7 +32,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sitemaps',
 
-    # ELYON apps
+    # EasyCV apps
     'accounts',
     'profiles',
     'ai',
@@ -116,8 +116,8 @@ LOGIN_REDIRECT_URL = 'profiles:dashboard'
 LOGOUT_REDIRECT_URL = 'home'
 
 
-# ELYON custom settings
-
+# EasyCV custom settings
 GROQ_API_KEY = os.environ.get('GROQ_API_KEY', '')
-GROQ_MODEL = os.environ.get('GROQ_MODEL', 'llama-3.3-70b-versatile')
+GROQ_MODEL = os.environ.get('GROQ_MODEL', 'openai/gpt-oss-120b')
+GROQ_VISION_MODEL = os.environ.get('GROQ_VISION_MODEL', 'qwen/qwen3.6-27b')
 SITE_DOMAIN = os.environ.get('SITE_DOMAIN', '127.0.0.1:8000')

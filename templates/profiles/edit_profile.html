@@ -1,27 +1,21 @@
-{% extends "base.html" %}
-{% block title %}Modifier mon profil — ELYON{% endblock %}
-{% block content %}
+{% extends "base.html" %} {% block title %}Modifier mon profil — EasyCV{% endblock %} {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-7">
         <div class="card-elyon p-4">
             <span class="card-label">Profil</span>
             <h4 class="mb-4">Modifier mon profil</h4>
             <form method="post" enctype="multipart/form-data" novalidate>
-                {% csrf_token %}
-                {% for field in form %}
-                    <div class="mb-3">
-                        <label class="form-label">{{ field.label }}</label>
-                        {{ field }}
-                        {% if field.name == 'bio' %}
-                            <button type="button" id="ai-bio-btn" class="btn btn-sm btn-outline-primary mt-2">
+                {% csrf_token %} {% for field in form %}
+                <div class="mb-3">
+                    <label class="form-label">{{ field.label }}</label> {{ field }} {% if field.name == 'bio' %}
+                    <button type="button" id="ai-bio-btn" class="btn btn-sm btn-outline-primary mt-2">
                                 <i class="bi bi-stars"></i> Générer avec l'IA
                             </button>
-                            <button type="button" id="ai-improve-btn" class="btn btn-sm btn-outline-secondary mt-2">
+                    <button type="button" id="ai-improve-btn" class="btn btn-sm btn-outline-secondary mt-2">
                                 Améliorer avec l'IA
-                            </button>
-                        {% endif %}
-                        {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
-                    </div>
+                            </button> {% endif %} {% for error in field.errors %}
+                    <div class="text-danger small">{{ error }}</div>{% endfor %}
+                </div>
                 {% endfor %}
                 <button class="btn btn-elyon-primary" type="submit">Enregistrer</button>
                 <a href="{% url 'profiles:dashboard' %}" class="btn btn-link">Annuler</a>
@@ -29,34 +23,48 @@
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_scripts %}
+{% endblock %} {% block extra_scripts %}
 <script>
-function getCookie(name) {
-    const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
-    return v ? v.pop() : '';
-}
-const bioField = document.getElementById('id_bio');
+    function getCookie(name) {
+        const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+        return v ? v.pop() : '';
+    }
+    const bioField = document.getElementById('id_bio');
 
-document.getElementById('ai-bio-btn').addEventListener('click', async () => {
-    const res = await fetch("{% url 'ai:bio_generate' %}", {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken')},
-        body: JSON.stringify({})
+    document.getElementById('ai-bio-btn').addEventListener('click', async() => {
+        const res = await fetch("{% url 'ai:bio_generate' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({})
+        });
+        const data = await res.json();
+        if (data.ok) {
+            bioField.value = data.result;
+        } else {
+            alert(data.error);
+        }
     });
-    const data = await res.json();
-    if (data.ok) { bioField.value = data.result; } else { alert(data.error); }
-});
 
-document.getElementById('ai-improve-btn').addEventListener('click', async () => {
-    const res = await fetch("{% url 'ai:bio_improve' %}", {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken')},
-        body: JSON.stringify({text: bioField.value})
+    document.getElementById('ai-improve-btn').addEventListener('click', async() => {
+        const res = await fetch("{% url 'ai:bio_improve' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                text: bioField.value
+            })
+        });
+        const data = await res.json();
+        if (data.ok) {
+            bioField.value = data.result;
+        } else {
+            alert(data.error);
+        }
     });
-    const data = await res.json();
-    if (data.ok) { bioField.value = data.result; } else { alert(data.error); }
-});
 </script>
 {% endblock %}

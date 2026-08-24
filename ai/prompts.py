@@ -54,3 +54,24 @@ def assistant_prompt(user_question, context_summary=""):
         f"de son CV : {user_question}{context_part}\n"
         f"Réponds de façon concrète et actionnable, en 5 phrases maximum."
     )
+
+
+def theme_vision_prompt():
+    return (
+        "Analyse cette image de référence pour un thème de CV. Réponds "
+        "UNIQUEMENT avec un objet JSON respectant exactement ce schéma, "
+        "sans aucun texte avant ou après :\n\n"
+        "{\n"
+        '  "palette": ["#RRGGBB", "#RRGGBB", "#RRGGBB"],\n'
+        '  "typography_mood": "modern" | "classic" | "technical" | "bold",\n'
+        '  "layout_archetype": "single-column" | "sidebar" | "header-band",\n'
+        '  "spacing": "compact" | "comfortable" | "spacious"\n'
+        "}\n\n"
+        "- palette : 2 à 3 couleurs dominantes de l'image, en hexadécimal.\n"
+        "- typography_mood : l'ambiance typographique qui correspond le mieux "
+        "au style visuel de l'image.\n"
+        "- layout_archetype : l'archétype de mise en page de CV le plus "
+        "cohérent avec ce style (colonne unique classique, barre latérale "
+        "colorée, ou bandeau d'en-tête coloré).\n"
+        "- spacing : la densité d'espacement qui correspond à l'image."
+    )
