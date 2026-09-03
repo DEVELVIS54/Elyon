@@ -1,6 +1,6 @@
 """
 CLIPBOARD LAN - Theme
-Couleurs, polices et styles pour l'interface
+Système de design: panneau de contrôle réseau/sécurité, graphite + signal cyan
 
 CHEMIN: windows/ui/theme.py
 """
@@ -11,139 +11,103 @@ CHEMIN: windows/ui/theme.py
 
 COLORS = {
     # Fond
-    "background": "#E8ECF1",
-    "background_light": "#F5F7FA",
-    
-    # Sidebar
-    "sidebar": "#1A2332",
-    "sidebar_hover": "#242F42",
-    "sidebar_active": "#2D3A52",
-    "sidebar_icon": "#8B95A5",
-    "sidebar_icon_active": "#FFFFFF",
-    
-    # Cards
-    "card": "#FFFFFF",
-    "card_hover": "#F5F7FA",
-    "card_border": "#E1E5EB",
-    
+    "background": "#0F1115",
+    "surface": "#17191C",
+    "surface_raised": "#1D2024",
+    "surface_hover": "#22252A",
+
+    # Rail / navigation (intégré au fond, pas un îlot séparé)
+    "rail": "#0F1115",
+    "rail_active": "#1D2024",
+    "rail_icon": "#5C6068",
+    "rail_icon_active": "#E7E8EA",
+
     # Texte
-    "text_primary": "#1A2332",
-    "text_secondary": "#8B95A5",
-    "text_light": "#B4BCC8",
-    "text_white": "#FFFFFF",
-    
-    # Accents
-    "accent": "#1A2332",
-    "accent_blue": "#3B82F6",
-    "accent_green": "#22C55E",
-    "accent_red": "#EF4444",
-    "accent_orange": "#F59E0B",
-    
-    # États
-    "success": "#22C55E",
-    "warning": "#F59E0B",
-    "error": "#EF4444",
-    "info": "#3B82F6",
-    
+    "text_primary": "#E7E8EA",
+    "text_secondary": "#8A8F98",
+    "text_dim": "#5C6068",
+    "text_on_accent": "#0F1115",
+
+    # Accent unique — signal
+    "accent": "#4CE0C4",
+    "accent_dim": "#2E7A6A",
+
+    # États (utilisés avec parcimonie, jamais comme fond de card)
+    "success": "#4CE0C4",
+    "warning": "#E8A33D",
+    "error": "#E8555F",
+    "offline": "#5C6068",
+
     # Bordures
-    "border": "#E1E5EB",
-    "border_light": "#F0F2F5",
+    "border": "#2A2D33",
+    "border_strong": "#3A3E46",
 }
 
 
 # ============================================================================
-# POLICES
+# POLICES — Segoe UI pour l'interface, Consolas pour toute donnée technique
+# (device IDs, tailles, ports, horodatages) : la distinction typographique
+# EST l'information, pas une décoration.
 # ============================================================================
 
 FONTS = {
     "family": "Segoe UI",
     "family_mono": "Consolas",
-    
+
     "size_xs": 11,
     "size_sm": 12,
     "size_base": 13,
-    "size_lg": 15,
-    "size_xl": 18,
-    "size_2xl": 24,
-    "size_3xl": 32,
-    
+    "size_lg": 16,
+    "size_xl": 20,
+    "size_2xl": 28,
+
     "weight_normal": "normal",
     "weight_bold": "bold",
 }
 
 
 # ============================================================================
-# ESPACEMENT
+# ESPACEMENT / RAYONS — coins presque droits (4-8px), pas le "tout arrondi"
 # ============================================================================
 
 SPACING = {
-    "xs": 4,
-    "sm": 8,
-    "md": 16,
-    "lg": 24,
-    "xl": 32,
-    "2xl": 48,
+    "xs": 4, "sm": 8, "md": 16, "lg": 24, "xl": 32, "2xl": 48,
 }
-
-
-# ============================================================================
-# RAYONS DE COINS
-# ============================================================================
 
 RADIUS = {
-    "sm": 6,
-    "md": 10,
-    "lg": 16,
-    "xl": 20,
-    "full": 999,
+    "sm": 4, "md": 6, "lg": 8, "full": 999,
 }
-
-
-# ============================================================================
-# DIMENSIONS
-# ============================================================================
 
 DIMENSIONS = {
-    "sidebar_width": 80,
-    "window_width": 1000,
-    "window_height": 650,
-    "card_min_height": 100,
-    "icon_size": 24,
+    "rail_width": 64,
+    "window_width": 1080,
+    "window_height": 680,
 }
 
 
 # ============================================================================
-# ICÔNES (emoji utilisés comme icônes simples)
+# STATUT — pastille pleine + libellé mono, jamais d'emoji décoratif
 # ============================================================================
 
-ICONS = {
-    "dashboard": "📊",
-    "devices": "📱",
-    "history": "📝",
-    "settings": "⚙️",
-    "notifications": "🔔",
-    "sync": "🔄",
-    "connected": "🟢",
-    "disconnected": "🔴",
-    "trusted": "✅",
-    "pending": "⏳",
-    "windows": "💻",
-    "android": "📱",
-    "success": "✅",
-    "error": "❌",
-    "clipboard": "📋",
+STATUS_SYMBOLS = {
+    "connected": "●",
+    "disconnected": "○",
+    "pending": "◐",
 }
 
+NAV_LABELS = {
+    "dashboard": "SYNC",
+    "devices": "APPAREILS",
+    "history": "HISTORIQUE",
+    "settings": "CONFIG",
+}
 
-# ============================================================================
-# HELPERS
-# ============================================================================
 
 def get_status_color(status: str) -> str:
     """Retourne la couleur associée à un statut."""
     status_map = {
         "connected": COLORS["success"],
-        "disconnected": COLORS["error"],
+        "disconnected": COLORS["offline"],
         "pending": COLORS["warning"],
         "trusted": COLORS["success"],
         "untrusted": COLORS["warning"],
@@ -153,13 +117,12 @@ def get_status_color(status: str) -> str:
     return status_map.get(status.lower(), COLORS["text_secondary"])
 
 
-def get_font(size_key: str = "base", weight: str = "normal") -> tuple:
-    """Retourne un tuple de police pour Tkinter/CustomTkinter."""
+def font(size_key: str = "base", weight: str = "normal", mono: bool = False) -> tuple:
+    """Retourne un tuple de police pour CustomTkinter."""
+    family = FONTS["family_mono"] if mono else FONTS["family"]
     size = FONTS.get(f"size_{size_key}", FONTS["size_base"])
-    return (FONTS["family"], size, weight)
+    return (family, size, weight)
 
 
 if __name__ == "__main__":
-    print("✅ Theme module ready")
-    print(f"Colors: {len(COLORS)} defined")
-    print(f"Fonts: {FONTS['family']}")
+    print("✅ Theme v2 ready — graphite/cyan technical panel")

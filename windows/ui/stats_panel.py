@@ -1,6 +1,6 @@
 """
 CLIPBOARD LAN - Stats Panel
-Tableau de bord avec statistiques et cards
+Flux de synchronisation en vedette + colonne de lecture compacte
 
 CHEMIN: windows/ui/stats_panel.py
 """
@@ -8,218 +8,170 @@ CHEMIN: windows/ui/stats_panel.py
 import customtkinter as ctk
 
 try:
-    from .theme import COLORS, FONTS, SPACING, RADIUS, ICONS, get_font
+    from .theme import COLORS, FONTS, SPACING, RADIUS, font
 except ImportError:
-    from theme import COLORS, FONTS, SPACING, RADIUS, ICONS, get_font
+    from theme import COLORS, FONTS, SPACING, RADIUS, font
 
 
-class StatCard(ctk.CTkFrame):
-    """Card individuelle affichant une statistique."""
-    
-    def __init__(self, master, icon: str, title: str, value: str, 
-                 subtitle: str = "", color: str = None):
-        """
-        Initialise une card de statistique.
-        
-        Args:
-            master: Widget parent
-            icon: Emoji/icône à afficher
-            title: Titre de la stat
-            value: Valeur principale (grand texte)
-            subtitle: Texte secondaire optionnel
-            color: Couleur d'accent optionnelle
-        """
-        super().__init__(
-            master, fg_color=COLORS["card"], corner_radius=RADIUS["lg"],
-            border_width=1, border_color=COLORS["card_border"]
+class FeedRow(ctk.CTkFrame):
+    """Une ligne du flux de synchronisation — style journal technique."""
+
+    def __init__(self, master, timestamp: str, source: str, content_preview: str, size_label: str):
+        super().__init__(master, fg_color="transparent")
+
+        self.grid_columnconfigure(2, weight=1)
+
+        ts = ctk.CTkLabel(
+            self, text=timestamp, font=font("xs", mono=True),
+            text_color=COLORS["text_dim"], width=56, anchor="w"
         )
-        
-        color = color or COLORS["text_primary"]
-        
+        ts.grid(row=0, column=0, sticky="w", padx=(0, SPACING["md"]))
+
+        src = ctk.CTkLabel(
+            self, text=source.upper(), font=font("xs", "bold", mono=True),
+            text_color=COLORS["accent"], width=64, anchor="w"
+        )
+        src.grid(row=0, column=1, sticky="w", padx=(0, SPACING["md"]))
+
+        content = ctk.CTkLabel(
+            self, text=content_preview, font=font("sm"),
+            text_color=COLORS["text_primary"], anchor="w"
+        )
+        content.grid(row=0, column=2, sticky="w")
+
+        size = ctk.CTkLabel(
+            self, text=size_label, font=font("xs", mono=True),
+            text_color=COLORS["text_dim"], anchor="e"
+        )
+        size.grid(row=0, column=3, sticky="e", padx=(SPACING["md"], 0))
+
+
+class ReadoutRow(ctk.CTkFrame):
+    """Une ligne de lecture chiffrée compacte (label + valeur alignée à droite)."""
+
+    def __init__(self, master, label: str, value: str, value_color: str = None):
+        super().__init__(master, fg_color="transparent")
+
         self.grid_columnconfigure(0, weight=1)
-        
-        # Icône
-        icon_label = ctk.CTkLabel(
-            self, text=icon, font=ctk.CTkFont(size=24),
-            anchor="w"
-        )
-        icon_label.grid(row=0, column=0, sticky="w", padx=SPACING["md"], pady=(SPACING["md"], 0))
-        
-        # Titre
-        title_label = ctk.CTkLabel(
-            self, text=title, font=ctk.CTkFont(family=FONTS["family"], size=FONTS["size_sm"]),
+
+        lbl = ctk.CTkLabel(
+            self, text=label, font=font("xs"),
             text_color=COLORS["text_secondary"], anchor="w"
         )
-        title_label.grid(row=1, column=0, sticky="w", padx=SPACING["md"], pady=(SPACING["xs"], 0))
-        
-        # Valeur
-        value_label = ctk.CTkLabel(
-            self, text=value, font=ctk.CTkFont(family=FONTS["family"], size=FONTS["size_2xl"], weight="bold"),
-            text_color=color, anchor="w"
+        lbl.grid(row=0, column=0, sticky="w")
+
+        val = ctk.CTkLabel(
+            self, text=value, font=font("base", "bold", mono=True),
+            text_color=value_color or COLORS["text_primary"], anchor="e"
         )
-        value_label.grid(row=2, column=0, sticky="w", padx=SPACING["md"], pady=(SPACING["xs"], 0))
-        
-        # Sous-titre
-        if subtitle:
-            subtitle_label = ctk.CTkLabel(
-                self, text=subtitle, font=ctk.CTkFont(family=FONTS["family"], size=FONTS["size_xs"]),
-                text_color=COLORS["text_light"], anchor="w"
-            )
-            subtitle_label.grid(row=3, column=0, sticky="w", padx=SPACING["md"], pady=(0, SPACING["md"]))
-        else:
-            self.grid_rowconfigure(2, minsize=SPACING["md"])
-    
-    def update_value(self, value: str):
-        """Met à jour la valeur affichée."""
-        pass
+        val.grid(row=0, column=1, sticky="e")
 
 
 class StatsPanel(ctk.CTkFrame):
     """
-    Panel principal du tableau de bord.
-    
-    Affiche:
-    - Cards de statistiques (appareils, syncs, etc.)
-    - Statut de synchronisation en direct
-    - Activité récente
+    Panel principal: flux de sync en vedette (large) + colonne de lecture
+    (uptime, débit, taux de réussite) — pas une grille de cards identiques.
     """
-    
+
     def __init__(self, master, sync_manager=None):
-        """
-        Initialise le panel de statistiques.
-        
-        Args:
-            master: Widget parent
-            sync_manager: Instance SyncManager (Phase 4)
-        """
         super().__init__(master, fg_color="transparent")
-        
+
         self.sync_manager = sync_manager
-        
-        self._create_header()
-        self._create_stats_grid()
-        self._create_activity_section()
-    
-    def _create_header(self):
-        """Crée l'en-tête du panel."""
-        header = ctk.CTkFrame(self, fg_color="transparent")
-        header.pack(fill="x", pady=(0, SPACING["lg"]))
-        
-        title = ctk.CTkLabel(
-            header, text="Tableau de bord",
-            font=ctk.CTkFont(family=FONTS["family"], size=FONTS["size_2xl"], weight="bold"),
-            text_color=COLORS["text_primary"]
+
+        body = ctk.CTkFrame(self, fg_color="transparent")
+        body.pack(fill="both", expand=True, pady=(SPACING["md"], 0))
+        body.grid_columnconfigure(0, weight=3)
+        body.grid_columnconfigure(1, weight=1)
+        body.grid_rowconfigure(0, weight=1)
+
+        self._create_feed(body)
+        self._create_readouts(body)
+
+    def _create_feed(self, parent):
+        feed_frame = ctk.CTkFrame(
+            parent, fg_color=COLORS["surface"], corner_radius=RADIUS["lg"],
+            border_width=1, border_color=COLORS["border"]
         )
-        title.pack(side="left")
-        
-        self.status_indicator = ctk.CTkLabel(
-            header, text=f"{ICONS['connected']} Actif",
-            font=ctk.CTkFont(family=FONTS["family"], size=FONTS["size_sm"]),
-            text_color=COLORS["success"]
+        feed_frame.grid(row=0, column=0, sticky="nsew", padx=(0, SPACING["md"]))
+
+        header = ctk.CTkLabel(
+            feed_frame, text="FLUX DE SYNCHRONISATION",
+            font=font("xs", "bold", mono=True), text_color=COLORS["text_dim"], anchor="w"
         )
-        self.status_indicator.pack(side="right")
-    
-    def _create_stats_grid(self):
-        """Crée la grille de cards de statistiques."""
-        grid = ctk.CTkFrame(self, fg_color="transparent")
-        grid.pack(fill="x", pady=(0, SPACING["lg"]))
-        
-        for i in range(4):
-            grid.grid_columnconfigure(i, weight=1, uniform="stats")
-        
-        self.card_devices = StatCard(
-            grid, ICONS["devices"], "Appareils connectés", "0",
-            "0 de confiance", COLORS["accent_blue"]
+        header.pack(fill="x", padx=SPACING["md"], pady=(SPACING["md"], SPACING["sm"]))
+
+        self.feed_list = ctk.CTkScrollableFrame(feed_frame, fg_color="transparent")
+        self.feed_list.pack(fill="both", expand=True, padx=SPACING["md"], pady=(0, SPACING["md"]))
+
+        self._show_feed_empty()
+
+    def _show_feed_empty(self):
+        empty = ctk.CTkLabel(
+            self.feed_list, text="En attente de la première synchronisation…",
+            font=font("sm"), text_color=COLORS["text_dim"]
         )
-        self.card_devices.grid(row=0, column=0, padx=(0, SPACING["sm"]), sticky="nsew")
-        
-        self.card_syncs = StatCard(
-            grid, ICONS["sync"], "Synchronisations", "0",
-            "aujourd'hui", COLORS["accent_green"]
+        empty.pack(pady=SPACING["xl"])
+
+    def _create_readouts(self, parent):
+        col = ctk.CTkFrame(
+            parent, fg_color=COLORS["surface"], corner_radius=RADIUS["lg"],
+            border_width=1, border_color=COLORS["border"]
         )
-        self.card_syncs.grid(row=0, column=1, padx=SPACING["sm"], sticky="nsew")
-        
-        self.card_success = StatCard(
-            grid, ICONS["success"], "Taux de réussite", "100%",
-            "sur 7 jours", COLORS["success"]
+        col.grid(row=0, column=1, sticky="nsew")
+
+        header = ctk.CTkLabel(
+            col, text="ÉTAT", font=font("xs", "bold", mono=True),
+            text_color=COLORS["text_dim"], anchor="w"
         )
-        self.card_success.grid(row=0, column=2, padx=SPACING["sm"], sticky="nsew")
-        
-        self.card_data = StatCard(
-            grid, ICONS["clipboard"], "Données transférées", "0 KB",
-            "total", COLORS["accent_orange"]
-        )
-        self.card_data.grid(row=0, column=3, padx=(SPACING["sm"], 0), sticky="nsew")
-    
-    def _create_activity_section(self):
-        """Crée la section d'activité récente."""
-        section = ctk.CTkFrame(
-            self, fg_color=COLORS["card"], corner_radius=RADIUS["lg"],
-            border_width=1, border_color=COLORS["card_border"]
-        )
-        section.pack(fill="both", expand=True)
-        
-        title = ctk.CTkLabel(
-            section, text="Activité récente",
-            font=ctk.CTkFont(family=FONTS["family"], size=FONTS["size_lg"], weight="bold"),
-            text_color=COLORS["text_primary"], anchor="w"
-        )
-        title.pack(fill="x", padx=SPACING["md"], pady=SPACING["md"])
-        
-        self.activity_list = ctk.CTkScrollableFrame(
-            section, fg_color="transparent"
-        )
-        self.activity_list.pack(fill="both", expand=True, padx=SPACING["md"], pady=(0, SPACING["md"]))
-        
-        self._show_empty_state()
-    
-    def _show_empty_state(self):
-        """Affiche un état vide quand pas d'activité."""
-        empty_label = ctk.CTkLabel(
-            self.activity_list, text="Aucune activité pour le moment",
-            font=ctk.CTkFont(family=FONTS["family"], size=FONTS["size_base"]),
-            text_color=COLORS["text_light"]
-        )
-        empty_label.pack(pady=SPACING["2xl"])
-    
-    def add_activity_item(self, source: str, content_preview: str, timestamp: str):
-        """
-        Ajoute un item à la liste d'activité.
-        
-        Args:
-            source: Appareil source (ex: "Android")
-            content_preview: Aperçu du contenu synchronisé
-            timestamp: Horodatage
-        """
-        item = ctk.CTkFrame(self.activity_list, fg_color=COLORS["background_light"], corner_radius=RADIUS["sm"])
-        item.pack(fill="x", pady=SPACING["xs"])
-        
-        icon = ICONS["android"] if "android" in source.lower() else ICONS["windows"]
-        
-        text = ctk.CTkLabel(
-            item, text=f"{icon} {source} → {content_preview}",
-            font=ctk.CTkFont(family=FONTS["family"], size=FONTS["size_sm"]),
-            text_color=COLORS["text_primary"], anchor="w"
-        )
-        text.pack(side="left", padx=SPACING["sm"], pady=SPACING["sm"])
-        
-        time_label = ctk.CTkLabel(
-            item, text=timestamp,
-            font=ctk.CTkFont(family=FONTS["family"], size=FONTS["size_xs"]),
-            text_color=COLORS["text_light"]
-        )
-        time_label.pack(side="right", padx=SPACING["sm"])
-    
+        header.pack(fill="x", padx=SPACING["md"], pady=(SPACING["md"], SPACING["sm"]))
+
+        self.readout_devices = ReadoutRow(col, "Appareils connectés", "0")
+        self.readout_devices.pack(fill="x", padx=SPACING["md"], pady=SPACING["xs"])
+
+        self.readout_syncs = ReadoutRow(col, "Syncs aujourd'hui", "0")
+        self.readout_syncs.pack(fill="x", padx=SPACING["md"], pady=SPACING["xs"])
+
+        self.readout_success = ReadoutRow(col, "Taux de réussite", "—", COLORS["accent"])
+        self.readout_success.pack(fill="x", padx=SPACING["md"], pady=SPACING["xs"])
+
+        self.readout_data = ReadoutRow(col, "Données transférées", "0 KB")
+        self.readout_data.pack(fill="x", padx=SPACING["md"], pady=SPACING["xs"])
+
+        sep = ctk.CTkFrame(col, height=1, fg_color=COLORS["border"])
+        sep.pack(fill="x", padx=SPACING["md"], pady=SPACING["md"])
+
+        self.readout_uptime = ReadoutRow(col, "Uptime", "00:00:00")
+        self.readout_uptime.pack(fill="x", padx=SPACING["md"], pady=SPACING["xs"])
+
+    def add_activity_item(self, source: str, content_preview: str, timestamp: str, size_label: str = ""):
+        """Ajoute une ligne au flux de synchronisation (retire l'état vide au premier ajout)."""
+        children = self.feed_list.winfo_children()
+        if len(children) == 1 and isinstance(children[0], ctk.CTkLabel):
+            children[0].destroy()
+
+        row = FeedRow(self.feed_list, timestamp, source, content_preview, size_label)
+        row.pack(fill="x", pady=SPACING["xs"])
+
+    def update_readouts(self, devices: int = None, syncs: int = None,
+                         success_rate: str = None, data_transferred: str = None,
+                         uptime: str = None):
+        """Met à jour les valeurs de la colonne d'état."""
+        if devices is not None:
+            self.readout_devices.grid_slaves(row=0, column=1)[0].configure(text=str(devices))
+        if syncs is not None:
+            self.readout_syncs.grid_slaves(row=0, column=1)[0].configure(text=str(syncs))
+        if success_rate is not None:
+            self.readout_success.grid_slaves(row=0, column=1)[0].configure(text=success_rate)
+        if data_transferred is not None:
+            self.readout_data.grid_slaves(row=0, column=1)[0].configure(text=data_transferred)
+        if uptime is not None:
+            self.readout_uptime.grid_slaves(row=0, column=1)[0].configure(text=uptime)
+
     def refresh(self, status: dict):
-        """
-        Rafraîchit les statistiques affichées.
-        
-        Args:
-            status: Dict de statut depuis SyncManager
-        """
+        """Rafraîchit à partir du statut renvoyé par SyncManager.get_status()."""
         connected = status.get("connected_devices", 0)
-        # Mise à jour des cards (nécessite refonte pour update dynamique)
+        self.update_readouts(devices=connected)
 
 
 if __name__ == "__main__":
-    print("✅ Stats Panel ready")
+    print("✅ Stats Panel v2 ready")
