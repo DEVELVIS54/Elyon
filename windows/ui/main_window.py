@@ -1,6 +1,7 @@
 """
 CLIPBOARD LAN - Main Window
-Rail de navigation intégré + en-tête avec pastille de statut réseau
+Rail d'icônes clair (boutons blancs individuels, icône active en carré
+bleu marine) + zone de contenu sur fond bleu-gris pâle.
 
 CHEMIN: windows/ui/main_window.py
 """
@@ -8,18 +9,13 @@ CHEMIN: windows/ui/main_window.py
 import customtkinter as ctk
 
 try:
-    from .theme import COLORS, FONTS, SPACING, RADIUS, DIMENSIONS, NAV_LABELS, font
+    from .theme import COLORS, FONTS, SPACING, RADIUS, DIMENSIONS, font
 except ImportError:
-    from theme import COLORS, FONTS, SPACING, RADIUS, DIMENSIONS, NAV_LABELS, font
+    from theme import COLORS, FONTS, SPACING, RADIUS, DIMENSIONS, font
 
 
 class MainWindow(ctk.CTk):
-    """
-    Fenêtre principale de Clipboard LAN.
-
-    Structure: rail d'icônes fin (intégré au fond) → header avec statut
-    réseau en direct → zone de contenu (panels).
-    """
+    """Fenêtre principale de Clipboard LAN — thème clair."""
 
     def __init__(self, sync_manager=None):
         super().__init__()
@@ -30,8 +26,8 @@ class MainWindow(ctk.CTk):
         self.geometry(f"{DIMENSIONS['window_width']}x{DIMENSIONS['window_height']}")
         self.configure(fg_color=COLORS["background"])
 
-        ctk.set_appearance_mode("dark")
-        ctk.set_default_color_theme("dark-blue")
+        ctk.set_appearance_mode("light")
+        ctk.set_default_color_theme("blue")
 
         self.panels = {}
         self.current_panel = None
@@ -50,17 +46,11 @@ class MainWindow(ctk.CTk):
         self.content_frame.grid(row=1, column=1, sticky="nsew", padx=SPACING["lg"], pady=(0, SPACING["lg"]))
 
     def _create_rail(self):
-        """Rail d'icônes fin, séparé par un simple trait — pas un îlot coloré."""
         self.rail = ctk.CTkFrame(
-            self, width=DIMENSIONS["rail_width"], fg_color=COLORS["rail"],
-            corner_radius=0, border_width=0
+            self, width=DIMENSIONS["rail_width"], fg_color=COLORS["rail"], corner_radius=0
         )
         self.rail.grid(row=0, column=0, rowspan=2, sticky="nsew")
         self.rail.grid_propagate(False)
-
-        # Trait de séparation vertical
-        sep = ctk.CTkFrame(self.rail, width=1, fg_color=COLORS["border"])
-        sep.place(relx=1.0, rely=0, relheight=1.0, anchor="ne")
 
         marks = [
             ("dashboard", "▤"),
@@ -72,16 +62,15 @@ class MainWindow(ctk.CTk):
         for i, (key, mark) in enumerate(marks):
             btn = ctk.CTkButton(
                 self.rail, text=mark, font=("Segoe UI", 18),
-                width=40, height=40, corner_radius=RADIUS["md"],
-                fg_color="transparent", hover_color=COLORS["surface_hover"],
-                text_color=COLORS["rail_icon"],
+                width=48, height=48, corner_radius=RADIUS["md"],
+                fg_color=COLORS["rail_icon_bg"], hover_color=COLORS["rail_icon_bg_hover"],
+                text_color=COLORS["rail_icon"], border_width=1, border_color=COLORS["border"],
                 command=lambda k=key: self.show_panel(k)
             )
-            btn.grid(row=i, column=0, padx=12, pady=(24 if i == 0 else 8, 8))
+            btn.grid(row=i, column=0, padx=14, pady=(28 if i == 0 else 10, 10))
             self.nav_buttons[key] = btn
 
     def _create_header(self):
-        """En-tête: nom de l'app + pastille de statut réseau en direct."""
         header = ctk.CTkFrame(self, fg_color=COLORS["background"], corner_radius=0, height=64)
         header.grid(row=0, column=1, sticky="nsew", padx=SPACING["lg"], pady=(SPACING["md"], 0))
         header.grid_propagate(False)
@@ -92,26 +81,23 @@ class MainWindow(ctk.CTk):
         )
         title.pack(side="left", anchor="w")
 
-        self.status_dot = ctk.CTkLabel(
-            header, text="●", font=("Segoe UI", 12), text_color=COLORS["success"]
-        )
-        self.status_dot.pack(side="right", padx=(0, 4))
+        status_pill = ctk.CTkFrame(header, fg_color=COLORS["card"], corner_radius=RADIUS["full"],
+                                    border_width=1, border_color=COLORS["border"], height=32)
+        status_pill.pack(side="right")
+
+        self.status_dot = ctk.CTkLabel(status_pill, text="●", font=("Segoe UI", 11), text_color=COLORS["success"])
+        self.status_dot.pack(side="left", padx=(12, 4), pady=6)
 
         self.status_label = ctk.CTkLabel(
-            header, text="LIVE · 192.168.1.50:7777",
+            status_pill, text="192.168.1.50:7777",
             font=font("xs", mono=True), text_color=COLORS["text_secondary"]
         )
-        self.status_label.pack(side="right")
-
-        # Trait de séparation sous le header
-        sep = ctk.CTkFrame(self, height=1, fg_color=COLORS["border"])
-        sep.grid(row=0, column=1, sticky="sew", padx=SPACING["lg"], pady=(56, 0))
+        self.status_label.pack(side="left", padx=(0, 14), pady=6)
 
     def set_connection_status(self, connected: bool, address: str = ""):
-        """Met à jour la pastille de statut réseau du header."""
         self.status_dot.configure(text_color=COLORS["success"] if connected else COLORS["offline"])
-        state = "LIVE" if connected else "HORS LIGNE"
-        self.status_label.configure(text=f"{state}{' · ' + address if address else ''}")
+        state = "" if connected else "Hors ligne "
+        self.status_label.configure(text=f"{state}{address}")
 
     def register_panel(self, name: str, panel_widget):
         self.panels[name] = panel_widget
@@ -122,9 +108,11 @@ class MainWindow(ctk.CTk):
 
         for key, btn in self.nav_buttons.items():
             if key == name:
-                btn.configure(fg_color=COLORS["surface_raised"], text_color=COLORS["accent"])
+                btn.configure(fg_color=COLORS["rail_active_bg"], text_color=COLORS["rail_active_icon"],
+                              border_width=0)
             else:
-                btn.configure(fg_color="transparent", text_color=COLORS["rail_icon"])
+                btn.configure(fg_color=COLORS["rail_icon_bg"], text_color=COLORS["rail_icon"],
+                              border_width=1, border_color=COLORS["border"])
 
         if name in self.panels:
             self.panels[name].pack(fill="both", expand=True)

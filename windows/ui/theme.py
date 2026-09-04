@@ -1,6 +1,8 @@
 """
 CLIPBOARD LAN - Theme
-Système de design: panneau de contrôle réseau/sécurité, graphite + signal cyan
+Système de design clair inspiré du dashboard de référence :
+fond bleu-gris pâle, cards blanches, rail d'icônes clair avec
+un carré arrondi bleu marine pour l'icône active.
 
 CHEMIN: windows/ui/theme.py
 """
@@ -10,44 +12,47 @@ CHEMIN: windows/ui/theme.py
 # ============================================================================
 
 COLORS = {
-    # Fond
-    "background": "#0F1115",
-    "surface": "#17191C",
-    "surface_raised": "#1D2024",
-    "surface_hover": "#22252A",
+    # Fond général
+    "background": "#EDF1F6",
+    "background_alt": "#E4E9F0",
 
-    # Rail / navigation (intégré au fond, pas un îlot séparé)
-    "rail": "#0F1115",
-    "rail_active": "#1D2024",
-    "rail_icon": "#5C6068",
-    "rail_icon_active": "#E7E8EA",
+    # Rail de navigation — même ton que le fond, pas un îlot séparé
+    "rail": "#EDF1F6",
+    "rail_icon_bg": "#FFFFFF",
+    "rail_icon_bg_hover": "#F5F7FA",
+    "rail_icon": "#8C93A3",
+    "rail_active_bg": "#151B2C",
+    "rail_active_icon": "#FFFFFF",
+
+    # Cards
+    "card": "#FFFFFF",
+    "card_hover": "#F7F9FB",
+    "card_border": "#E3E7ED",
 
     # Texte
-    "text_primary": "#E7E8EA",
-    "text_secondary": "#8A8F98",
-    "text_dim": "#5C6068",
-    "text_on_accent": "#0F1115",
+    "text_primary": "#1B2233",
+    "text_secondary": "#8C93A3",
+    "text_light": "#B7BDC9",
+    "text_on_dark": "#FFFFFF",
 
-    # Accent unique — signal
-    "accent": "#4CE0C4",
-    "accent_dim": "#2E7A6A",
+    # Accent — même bleu marine que l'icône active, utilisé avec parcimonie
+    "accent": "#151B2C",
+    "accent_soft": "#EEF0F4",
 
-    # États (utilisés avec parcimonie, jamais comme fond de card)
-    "success": "#4CE0C4",
+    # États
+    "success": "#2FBE8F",
     "warning": "#E8A33D",
-    "error": "#E8555F",
-    "offline": "#5C6068",
+    "error": "#E5555F",
+    "offline": "#B7BDC9",
 
     # Bordures
-    "border": "#2A2D33",
-    "border_strong": "#3A3E46",
+    "border": "#E3E7ED",
+    "border_strong": "#D3D8E0",
 }
 
 
 # ============================================================================
-# POLICES — Segoe UI pour l'interface, Consolas pour toute donnée technique
-# (device IDs, tailles, ports, horodatages) : la distinction typographique
-# EST l'information, pas une décoration.
+# POLICES
 # ============================================================================
 
 FONTS = {
@@ -59,7 +64,7 @@ FONTS = {
     "size_base": 13,
     "size_lg": 16,
     "size_xl": 20,
-    "size_2xl": 28,
+    "size_2xl": 26,
 
     "weight_normal": "normal",
     "weight_bold": "bold",
@@ -67,7 +72,7 @@ FONTS = {
 
 
 # ============================================================================
-# ESPACEMENT / RAYONS — coins presque droits (4-8px), pas le "tout arrondi"
+# ESPACEMENT / RAYONS — coins bien arrondis, cohérent avec la référence
 # ============================================================================
 
 SPACING = {
@@ -75,31 +80,21 @@ SPACING = {
 }
 
 RADIUS = {
-    "sm": 4, "md": 6, "lg": 8, "full": 999,
+    "sm": 8, "md": 12, "lg": 18, "xl": 22, "full": 999,
 }
 
 DIMENSIONS = {
-    "rail_width": 64,
+    "rail_width": 76,
     "window_width": 1080,
     "window_height": 680,
 }
 
 
-# ============================================================================
-# STATUT — pastille pleine + libellé mono, jamais d'emoji décoratif
-# ============================================================================
-
-STATUS_SYMBOLS = {
-    "connected": "●",
-    "disconnected": "○",
-    "pending": "◐",
-}
-
 NAV_LABELS = {
-    "dashboard": "SYNC",
-    "devices": "APPAREILS",
-    "history": "HISTORIQUE",
-    "settings": "CONFIG",
+    "dashboard": "Tableau de bord",
+    "devices": "Appareils",
+    "history": "Historique",
+    "settings": "Paramètres",
 }
 
 
@@ -125,4 +120,4 @@ def font(size_key: str = "base", weight: str = "normal", mono: bool = False) -> 
 
 
 if __name__ == "__main__":
-    print("✅ Theme v2 ready — graphite/cyan technical panel")
+    print("✅ Theme v3 ready — light dashboard style")
