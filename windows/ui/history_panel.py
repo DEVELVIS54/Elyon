@@ -136,3 +136,5 @@ class HistoryPanel(ctk.CTkFrame):
         self._show_empty_state()
 
 
+if __name__ == "__main__":
+    print("✅ History Panel v3 ready — light theme")
