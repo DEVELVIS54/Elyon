@@ -1,106 +1,136 @@
-# ELYON Portfolio
+# ELYON (EasyCV) — Générateur de CV Professionnel par IA
 
-Plateforme SaaS permettant à un utilisateur de créer une identité professionnelle
-numérique complète en quelques minutes : profil, portfolio, CV automatique,
-QR Code, statistiques, et assistant IA (Groq).
-
-URL publique type : `http://127.0.0.1:8000/u/elvis/`
-
-## Fonctionnalités incluses (MVP)
-
-- **Comptes** : inscription, connexion, déconnexion
-- **Profil professionnel** : photo, nom, métier, localisation, bio, dispo, coordonnées
-- **Portfolio** : projets (titre, description, image, technos, GitHub, démo, vedette)
-- **Réseaux sociaux** : GitHub, LinkedIn, Facebook, Instagram, X, YouTube, TikTok, site perso
-- **Compétences / Expériences / Formations**
-- **Thèmes** : minimal, developer, corporate, creative, glass, dark (couleurs personnalisables)
-- **Professional Score** : score /100 calculé automatiquement + conseils d'amélioration
-- **Analytics** : vues du profil, visiteurs uniques, clics par lien, projets les plus vus, courbe 14 jours
-- **CV automatique** : génération PDF (ReportLab) à partir des données du profil
-- **QR Code** : généré automatiquement vers l'URL publique du profil
-- **Page publique** : `/u/<username>/`, responsive, avec SEO (title, description, Open Graph)
-- **Assistant IA (Groq)** : génération/amélioration de bio, description de projet,
-  suggestions de compétences, analyse de profil, assistant conversationnel
-- **Plan Free / Pro / Business** (structure de base — limite de 3 projets en Free)
-- **Admin Django** configuré pour tous les modèles
-
-## Stack technique
-
-- Backend : Python, Django
-- Base de données : SQLite (dev) — PostgreSQL recommandé en production
-- Frontend : Bootstrap 5 (CDN) + CSS custom
-- IA : Groq API (`ai/services.py`)
-- PDF : ReportLab
-- QR Code : bibliothèque `qrcode`
-
-## Installation
-
-```bash
-# 1. Créer et activer un environnement virtuel
-python -m venv venv
-source venv/bin/activate      # Windows : venv\Scripts\activate
-
-# 2. Installer les dépendances
-pip install -r requirements.txt
-
-# 3. Configurer les variables d'environnement
-cp .env.example .env
-# → édite .env et ajoute ta clé GROQ_API_KEY si tu veux utiliser l'IA
-
-# 4. Appliquer les migrations
-python manage.py migrate
-
-# 5. Créer un compte administrateur
-python manage.py createsuperuser
-
-# 6. Lancer le serveur
-python manage.py runserver
-```
-
-Rends-toi sur `http://127.0.0.1:8000/` pour voir la landing page,
-`http://127.0.0.1:8000/admin/` pour l'admin Django.
-
-## Architecture
-
-```
-elyon/
-├── manage.py
-├── requirements.txt
-├── .env.example
-├── config/            # settings, urls, wsgi
-├── accounts/          # inscription / connexion
-├── profiles/          # profil, thèmes, réseaux sociaux, page publique, QR code
-├── projects/          # portfolio / projets
-├── analytics/         # vues, clics, téléchargements CV
-├── ai/                # intégration Groq (services.py, prompts.py, views.py)
-├── cvgen/             # génération de CV PDF
-├── templates/          # tous les templates HTML
-└── static/             # CSS custom
-```
-
-## Configurer la clé Groq
-
-1. Crée un compte sur https://console.groq.com
-2. Génère une clé API
-3. Ajoute-la dans `.env` :
-   ```
-   GROQ_API_KEY=ta_cle_ici
-   ```
-
-Sans clé configurée, les fonctionnalités IA du dashboard renverront un message
-d'erreur explicite mais le reste de l'application fonctionne normalement.
-
-## Prochaines étapes suggérées (Phase 4 / 5 du cahier des charges)
-
-- Système d'abonnement / paiement (Pro, Business)
-- Domaine personnalisé par utilisateur
-- Comptes Business multi-profils
-- API publique
-- Déploiement production (PostgreSQL, Gunicorn/Nginx, stockage médias sur S3)
-- Tests automatisés
-- Thèmes publics supplémentaires (corporate, creative, glass déjà prévus dans les choix
-  du modèle — templates HTML à compléter sur le même modèle que `profiles/public/minimal.html`)
+Plateforme SaaS Django dédiée à la création et à la génération de **CV professionnels de haute qualité**, assistée par l'intelligence artificielle (**Groq LLM & Vision**) et propulsée par un moteur de rendu vectoriel (**ReportLab**).
 
 ---
 
-Généré comme base de projet Django complète et fonctionnelle, prête à être étendue.
+## 🌟 Fonctionnalités Principales
+
+- **Authentification & Onboarding** :
+  - Inscription, connexion, déconnexion avec création automatique du profil.
+  - Parcours d'onboarding fluide pour guider les nouveaux utilisateurs.
+
+- **Gestion Complète du Profil Candidat** :
+  - Identité : nom, profession, coordonnées, photo, biographie, statut de disponibilité.
+  - Réseaux professionnels & liens : GitHub, LinkedIn, site personnel, Twitter/X, etc.
+  - Compétences techniques avec notation de niveau.
+  - Expériences professionnelles (intitulé, entreprise, dates, description).
+  - Formations et diplômes (établissement, diplôme, période).
+
+- **Professional Score (/100)** :
+  - Score dynamique calculé en temps réel selon la complétude du CV.
+  - Conseils personnalisés pour maximiser l'impact de la candidature.
+
+- **Catalogue de Thèmes & Analyse Vision par IA** :
+  - Catalogue de modèles visuels uploadés via l'admin Django.
+  - Analyse d'image automatisée par **Groq Vision** (`GROQ_VISION_MODEL`) pour extraire une fiche de style structurée :
+    - Palette de couleurs dominante et secondaire
+    - Style typographique (moderne, classique, technique, audacieux)
+    - Archétype de mise en page (`single-column`, `sidebar`, `header-band`)
+    - Rythme et espacement vertical
+  - Sélection ou réinitialisation de thème en un clic depuis le dashboard.
+
+- **Moteur de Génération PDF (ReportLab)** :
+  - Génération vectorielle nette et ultra-rapide au format A4.
+  - 3 archétypes de mise en page intégrés :
+    1. **Single-Column** : classique, élégant et épuré.
+    2. **Sidebar** : colonne latérale colorée avec mise en valeur des compétences et contacts.
+    3. **Header-Band** : bannière supérieure avec coordonnées intégrées.
+  - Prévisualisation inline dans le navigateur ou téléchargement direct en pièce jointe.
+
+- **Assistant IA (Groq)** :
+  - Génération et reformulation de biographie professionnelle selon le ton souhaité.
+  - Suggestions intelligentes de compétences selon le métier.
+  - Audit et analyse critique du profil avec recommandations d'amélioration.
+  - Assistant conversationnel interactif directement accessible sur le tableau de bord.
+
+---
+
+## 🛠️ Stack Technique
+
+- **Backend** : Python 3.10+, Django 6.1
+- **Base de données** : SQLite (développement) — compatible PostgreSQL (production)
+- **Génération PDF** : ReportLab 4.0+
+- **Traitement d'images** : Pillow 10.0+
+- **Intelligence Artificielle** : API Groq (`openai/gpt-oss-120b` pour le texte, `qwen/qwen3.6-27b` pour la vision)
+- **Frontend** : Django Templates, Bootstrap 5 (CDN), CSS custom (`static/css/elyon.css`)
+- **Typographie** : Anton, Inter, JetBrains Mono
+
+---
+
+## 📂 Architecture du Projet
+
+```text
+ELYON_CV_Django/
+├── config/           # Configuration globale Django, settings, routage principal
+├── accounts/         # Authentification (inscription, connexion, déconnexion)
+├── profiles/         # Profil utilisateur, compétences, expériences, formations, dashboard & score
+├── cvgen/            # Thèmes de CV, moteur de rendu ReportLab, export & preview PDF
+├── ai/               # Services Groq (prompts, génération textuelle, analyse vision de thèmes)
+├── templates/        # Templates HTML Jinja/Django
+├── static/           # Feuilles de style CSS, scripts et assets graphiques
+├── media/            # Stockage des uploads (photos de profil, images de thèmes, PDF générés)
+└── manage.py         # Point d'entrée des commandes Django
+```
+
+---
+
+## 🚀 Installation & Démarrage
+
+### 1. Cloner le dépôt et créer l'environnement virtuel
+
+```bash
+# Créer l'environnement virtuel
+python -m venv venv
+
+# Activer l'environnement virtuel
+# Sur Windows (PowerShell) :
+venv\Scripts\Activate.ps1
+# Sur Linux / macOS :
+source venv/bin/activate
+```
+
+### 2. Installer les dépendances
+
+```bash
+pip install -r requirements.txt
+```
+
+### 3. Configurer les variables d'environnement
+
+Copiez le fichier `.env.example` en `.env` :
+
+```bash
+cp .env.example .env
+```
+
+Puis configurez votre clé API Groq dans `.env` :
+```env
+SECRET_KEY=votre-cle-secrete-django
+DEBUG=True
+ALLOWED_HOSTS=localhost,127.0.0.1
+GROQ_API_KEY=votre_cle_api_groq_ici
+GROQ_MODEL=openai/gpt-oss-120b
+GROQ_VISION_MODEL=qwen/qwen3.6-27b
+```
+
+### 4. Appliquer les migrations et créer un compte administrateur
+
+```bash
+python manage.py migrate
+python manage.py createsuperuser
+```
+
+### 5. Lancer les tests automatisés
+
+```bash
+python manage.py test
+```
+
+### 6. Démarrer le serveur de développement
+
+```bash
+python manage.py runserver
+```
+
+Rendez-vous sur [http://127.0.0.1:8000/](http://127.0.0.1:8000/) pour utiliser l'application, ou sur [http://127.0.0.1:8000/admin/](http://127.0.0.1:8000/admin/) pour accéder à l'interface d'administration et gérer les thèmes de CV.

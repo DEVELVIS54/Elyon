@@ -29,9 +29,12 @@ Décisions actées avec l'utilisateur (DEVELVIS) :
    le PDF final. Pas de génération de code/design brut à chaque fois par
    l'IA (jugé trop peu fiable pour un rendu "très professionnel").
 
-**Ce chantier (catalogue de thèmes CV + pipeline IA vision) n'est PAS encore
-implémenté.** Seul le retrait du portfolio et le nettoyage du code sont
-faits. Voir section 9 pour le détail de ce qui reste à construire.
+**Ce chantier (catalogue de thèmes CV + pipeline IA vision + 3 archétypes ReportLab) est désormais ENTIÈREMENT IMPLÉMENTÉ ET VALIDÉ PAR DES TESTS AUTOMATISÉS.**
+- Modèle `CVTheme` avec upload d'image, champ `design_spec` (JSON) et analyse vision Groq (`qwen/qwen3.6-27b`).
+- Page de sélection de thèmes (`cvgen/themes/`), prévisualisation inline (`cvgen/preview/`) et téléchargement (`cvgen/download/`).
+- Moteur de rendu ReportLab multi-archétypes (`single-column`, `sidebar`, `header-band`).
+- Signal `post_save` automatique pour garantir qu'un profil existe pour chaque utilisateur.
+- Suite de tests unitaires et d'intégration Django (19 tests, 100% passants).
 
 ## 1. Vision du projet (mise à jour)
 
@@ -170,39 +173,27 @@ navigateur dans cet environnement).
 ## 8. Ce qui n'est PAS implémenté (hors périmètre actuel)
 
 - Paiement / abonnements (décision explicite : plateforme gratuite)
-- Le nouveau catalogue de thèmes CV + pipeline IA vision (voir section 9 —
-  c'est le prochain chantier, pas encore commencé)
 - Domaine personnalisé, comptes Business multi-profils, API publique
 - Déploiement production (PostgreSQL, stockage objet, serveur applicatif)
-- Tests automatisés (pytest/Django TestCase — les vérifications de cette
-  session étaient des smoke tests manuels ponctuels, pas une suite de
-  tests conservée dans le repo)
 
-## 9. Prochain chantier — catalogue de thèmes CV + génération IA (à construire)
+## 9. Catalogue de thèmes CV + génération IA (implémenté et finalisé)
 
-C'est la prochaine grosse étape, pas encore commencée. Élements validés
-avec l'utilisateur :
-- Nouveau modèle Django (ex. `CVTheme`) avec : nom, image de référence
-  (uploadée par l'utilisateur lui-même via l'admin Django, pas par Claude),
-  description optionnelle, et une "fiche de style" (JSON) remplie par
-  analyse IA vision de l'image (palette, typographie, archétype de mise en
-  page).
-- Page de sélection de thème pour l'utilisateur final (catalogue avec
-  images, façon de l'ancien `edit_theme.html` mais pour CV).
-- Pipeline de génération : au moment de générer le CV, si la fiche de style
-  du thème choisi n'est pas encore calculée, l'IA vision (modèle Groq à
-  déterminer — à vérifier s'il propose un modèle vision) l'analyse une
-  fois et la met en cache sur le `CVTheme`. Le CV est ensuite rendu par un
-  moteur **paramétrable** (probablement plusieurs archétypes de mise en
-  page ReportLab codés à l'avance, chacun paramétré par couleur/police
-  selon la fiche de style) plutôt que du code généré à la volée par l'IA —
-  pour garantir un rendu toujours propre et professionnel.
-- Point technique à trancher à la reprise : rester sur ReportLab (portable,
-  fonctionne partout y compris Windows) avec un nombre limité d'archétypes
-  de mise en page codés à l'avance, vs. passer à un moteur HTML/CSS→PDF
-  (ex. WeasyPrint, plus flexible pour du style piloté par variables CSS,
-  mais dépendances système risquées sur Windows — l'environnement de dev
-  de l'utilisateur, voir section 10).
+Le pipeline complet est opérationnel :
+- Modèle Django `CVTheme` (`cvgen/models.py`) : image de référence (upload admin),
+  champ `design_spec` (JSON) contenant la palette, typographie, espacement et
+  archétype. Méthode `theme.analyze()` avec détection de format via Pillow et
+  appel Groq Vision.
+- Interface d'administration Django (`cvgen/admin.py`) avec action groupée pour
+  analyser les thèmes sélectionnés en un clic.
+- Page de sélection de thèmes (`cvgen/templates/cvgen/choose_theme.html`) avec
+  aperçus et sélection en un clic.
+- Rendu paramétrique ReportLab (`cvgen/services.py`) supportant 3 archétypes :
+  `single-column`, `sidebar`, `header-band`. Analyse à la volée avec fallback sécurisé
+  si le thème n'a pas encore été analysé.
+- Prévisualisation inline (`cvgen:preview`) et téléchargement (`cvgen:download`)
+  avec régénération automatique et gestion sécurisée des flux de fichiers.
+- Suite de tests unitaires et d'intégration Django couvrant l'ensemble des modules
+  (19 tests exécutés avec succès via `python manage.py test`).
 
 ## 10. Installation / lancement (rappel)
 

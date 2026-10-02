@@ -31,8 +31,14 @@ DEFAULT_SPEC = {
 def _resolve_spec(profile):
     spec = dict(DEFAULT_SPEC)
     theme = getattr(profile, 'cv_theme', None)
-    if theme and theme.design_spec:
-        spec.update(theme.design_spec)
+    if theme:
+        if not theme.is_analyzed and theme.reference_image:
+            try:
+                theme.analyze()
+            except Exception:
+                pass
+        if theme.design_spec:
+            spec.update(theme.design_spec)
 
     palette = spec.get('palette') or []
     accent = colors.HexColor(palette[0]) if palette else colors.HexColor(profile.primary_color or '#E8231A')

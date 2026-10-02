@@ -156,3 +156,13 @@ class Education(models.Model):
 
     def __str__(self):
         return f"{self.degree} - {self.school}"
+
+
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.get_or_create(user=instance, defaults={'email_public': instance.email or ''})

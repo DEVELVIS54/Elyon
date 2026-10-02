@@ -16,7 +16,7 @@ def register(request):
         form = RegisterForm(request.POST)
         if form.is_valid():
             user = form.save()
-            Profile.objects.create(user=user, email_public=user.email)
+            Profile.objects.get_or_create(user=user, defaults={'email_public': user.email})
             login(request, user)
             return redirect('profiles:onboarding')
     else:

@@ -30,11 +30,17 @@ def generate_cv(request):
 @login_required
 def download_cv(request):
     profile = request.user.profile
-    if profile.cv_pdf:
-        pdf_bytes = profile.cv_pdf.read()
+    if profile.cv_pdf and profile.cv_pdf.storage.exists(profile.cv_pdf.name):
+        profile.cv_pdf.open('rb')
+        try:
+            pdf_bytes = profile.cv_pdf.read()
+        finally:
+            profile.cv_pdf.close()
     else:
         buffer = build_cv_pdf(profile)
         pdf_bytes = buffer.getvalue()
+        filename = f"cv_{profile.user.username}.pdf"
+        profile.cv_pdf.save(filename, ContentFile(pdf_bytes), save=True)
     response = HttpResponse(pdf_bytes, content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="cv_{profile.user.username}.pdf"'
     return response
@@ -44,11 +50,17 @@ def download_cv(request):
 def preview_cv(request):
     """Aperçu du CV dans le navigateur (ouverture inline, pas de téléchargement forcé)."""
     profile = request.user.profile
-    if profile.cv_pdf:
-        pdf_bytes = profile.cv_pdf.read()
+    if profile.cv_pdf and profile.cv_pdf.storage.exists(profile.cv_pdf.name):
+        profile.cv_pdf.open('rb')
+        try:
+            pdf_bytes = profile.cv_pdf.read()
+        finally:
+            profile.cv_pdf.close()
     else:
         buffer = build_cv_pdf(profile)
         pdf_bytes = buffer.getvalue()
+        filename = f"cv_{profile.user.username}.pdf"
+        profile.cv_pdf.save(filename, ContentFile(pdf_bytes), save=True)
     response = HttpResponse(pdf_bytes, content_type='application/pdf')
     response['Content-Disposition'] = f'inline; filename="cv_{profile.user.username}.pdf"'
     return response
